@@ -1,0 +1,9 @@
+.idea
+.vscode
+instance
+*.env
+.gitignore
+README.md
+Dockerfile
+LICENSE
+docker-compose.yml

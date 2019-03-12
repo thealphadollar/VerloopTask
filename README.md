@@ -1,4 +1,5 @@
 # VerloopTask
+
 A REST API as a task under Verloop Interview
 
 ## Requirements
@@ -11,7 +12,7 @@ The application uses the following third-party libraries:
 - Pylint [python linter]
 - Gunicorn [Web Server Gateway Interface]
 - coloredlogs [improved logging system]
-
+- pyYAML [handles YAML config files]
 
 ## Schema
 
