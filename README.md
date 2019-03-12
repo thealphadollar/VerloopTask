@@ -29,3 +29,14 @@ modifying TEXT NOT NULL  /* stores "no", "title", "body" */
 title TEXT NOT NULL
 body TEXT  /* will store stringified JSON */
 ```
+
+## Logging
+
+The module produces error logs in two ways: an STDOUT stream and a file stream.
+
+STDOUT: The stream's logging level is INFO, unless `VERLOOP_DEBUG` is set to "TRUE".
+FileStream: The logs of DEBUG and above level are saved to `~/collab/collab.logs`
+
+## Datastorage
+
+The stories are stored in the SQLite database, `~/collab/collab.sql`

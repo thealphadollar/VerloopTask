@@ -49,10 +49,9 @@ def create_app():
 
 def config_logging():
     """
-    [summary]
+    loads configuration for the logging module
     
-    [description]
-    
+    The file that is used to load logging configuration is "./log_config.yaml"    
     """
 
     yaml = YAML(typ="safe")
