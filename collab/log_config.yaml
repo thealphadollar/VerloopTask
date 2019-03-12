@@ -1,0 +1,32 @@
+---
+# The file stores logging configuration for collab
+# NOTE: Log address provided relative to user's home directory
+version: 1
+disable_existing_loggers: True
+formatters:
+  simple:
+    format: "%(asctime)s [%(name)s] [%(levelname)-8s] %(message)s"
+    datefmt: '%m/%d/%Y %I:%M:%S %p'
+  colored:
+    "()": coloredlogs.ColoredFormatter
+    format: "%(asctime)s [%(name)s] [%(levelname)-8s] %(message)s"
+    datefmt: '%m/%d/%Y %H:%M:%S'
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: colored
+    stream: ext://sys.stdout
+    level: INFO
+  file:
+    class: logging.FileHandler
+    formatter: simple
+    filename: collab.log
+    level: DEBUG
+root:
+  level: DEBUG
+  handlers: [console, file]
+loggers:
+  collab:
+    level: DEBUG
+    handler: [console, file]
+...
