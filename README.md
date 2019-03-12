@@ -13,3 +13,17 @@ The application uses the following third-party libraries:
 - coloredlogs [improved logging system]
 
 
+## Schema
+
+The database used here is SQLite for the ease of development. Any SQL database can be easily swapped for.
+
+The database has a single table based on the following schema:
+
+```text
+id INTEGER PRIMARY KEY AUTOINCREMENT  /* indexing based on id for easy retrieval */
+created_at TEXT NOT NULL  /* stores time as string */
+last_modified TEXT  /* stores time as string */, 
+modifying TEXT NOT NULL  /* stores "no", "title", "body" */
+title TEXT NOT NULL
+body TEXT  /* will store stringified JSON */
+```
