@@ -3,14 +3,15 @@ contains the flask app and driver methods
 """
 
 import os
-import yaml
 import coloredlogs
-import logging
+import pydash
+import logging.config
 
+from ruamel.yaml import YAML
 from flask import Flask, current_app
 
 from .config import BasicConfig, ProdConfig
-
+from .post_requests import add
 
 LOG = logging.getLogger("collab")
 
@@ -22,9 +23,9 @@ def create_app():
     :return: server app
     :rtype: Flask App
     """
-    LOG.DEBUG("Initialising flask module...")
+    LOG.debug("Initialising flask module...")
     app = Flask(__name__, instance_relative_config=True)
-    if os.environ.get("FLASK_APP_MODE", "dev").lower() == "production":
+    if os.environ.get("FLASK_ENV", "dev").lower() == "production":
         app.config.from_object(ProdConfig)
     else:
         app.config.from_object(BasicConfig)
@@ -34,12 +35,15 @@ def create_app():
     try:
         os.makedirs(current_app.config['DIR'], exist_ok=True)
     except OSError as err:
-        LOG.DEBUG(err)
-        LOG.ERROR("Error: Unable to create %s", current_app.config['DIR'])
-        LOG.WARNING("Initialisation aborted!")
+        LOG.debug(err)
+        LOG.error("Error: Unable to create %s", current_app.config['DIR'])
+        LOG.warning("Initialisation aborted!")
 
-    LOG.DEBUG("Initialising logging module...")
+    LOG.debug("Initialising logging module...")
     config_logging()
+
+    # adding blueprints
+    app.register_blueprint(add)
 
     return app
 
@@ -51,15 +55,16 @@ def config_logging():
     
     """
 
-    with current_app.open_resource('logging.YAML') as f:
-        config = yaml.safe_load(f.read())
+    yaml = YAML(typ="safe")
+    with current_app.open_resource(current_app.config['LOGGING_CONFIG']) as f:
+        config = yaml.load(f)
 
     # check if debug data to be output
     log_lvl = "INFO"
     if os.environ.get('VERLOOP_DEBUG', False):
         log_lvl = "DEBUG"
-    config.update(
-        {
+    
+    update_config = {
             "handlers":
             {
                 "console":
@@ -72,7 +77,8 @@ def config_logging():
                 }
             }
         }
-    )
+
+    pydash.merge(config, update_config)
 
     logging.config.dictConfig(config)
-    LOG.DEBUG("Logger Configured!")
+    LOG.debug("Logger Configured!")

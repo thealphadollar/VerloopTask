@@ -12,7 +12,8 @@ The application uses the following third-party libraries:
 - Pylint [python linter]
 - Gunicorn [Web Server Gateway Interface]
 - coloredlogs [improved logging system]
-- pyYAML [handles YAML config files]
+- ruamel-yaml [handles YAML config files]
+- pydash [manages datatype handling and merging]
 
 ## Schema
 

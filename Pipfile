@@ -10,8 +10,8 @@ coloredlogs = "*"
 gunicorn = "*"
 
 [packages]
-yaml = "*"
-pyyaml = "*"
+pydash = "*"
+ruamel-yaml = "*"
 
 [requires]
 python_version = "3.7"
