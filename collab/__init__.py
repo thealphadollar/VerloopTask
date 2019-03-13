@@ -3,15 +3,15 @@ contains the flask app and driver methods
 """
 
 import os
-import coloredlogs
-import pydash
-import logging.config
+import logging
 
-from ruamel.yaml import YAML
 from flask import Flask, current_app
 
 from .config import BasicConfig, ProdConfig
+from .helpers import config_logging
 from .post_requests import add
+from .get_requests import stories
+
 
 LOG = logging.getLogger("collab")
 
@@ -44,40 +44,6 @@ def create_app():
 
     # adding blueprints
     app.register_blueprint(add)
+    app.register_blueprint(stories)
 
     return app
-
-def config_logging():
-    """
-    loads configuration for the logging module
-    
-    The file that is used to load logging configuration is "./log_config.yaml"    
-    """
-
-    yaml = YAML(typ="safe")
-    with current_app.open_resource(current_app.config['LOGGING_CONFIG']) as f:
-        config = yaml.load(f)
-
-    # check if debug data to be output
-    log_lvl = "INFO"
-    if os.environ.get('VERLOOP_DEBUG', False):
-        log_lvl = "DEBUG"
-    
-    update_config = {
-            "handlers":
-            {
-                "console":
-                {
-                    "level": log_lvl
-                },
-                "file":
-                {
-                    "filename": current_app.config['LOGS']
-                }
-            }
-        }
-
-    pydash.merge(config, update_config)
-
-    logging.config.dictConfig(config)
-    LOG.debug("Logger Configured!")

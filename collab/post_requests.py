@@ -2,9 +2,13 @@
 contains all methods for endpoints that use POST method
 """
 
+import logging
 import json
 
 from flask import Blueprint, request, Response
+
+
+LOG = logging.getLogger(__name__)
 
 add = Blueprint('add_story', __name__, url_prefix='/add')
 
@@ -39,10 +43,26 @@ def add_story():
         else:
             # TODO: add new word to the dictionary, and return response code
             # 201 if it was new, 200 if old and title and current_sentence.
-            status_code, response_dict = 200, dict({
+            db_resp = dict({
                 "id": 1,
-                "title": "verloop task",
-                "current_sentence": "something"
+                "title": "something",
+                "created_at": "timestamp",
+                "updated_at": "timestamp",
+                "body": "something somemore something"
+            })
+
+            if db_resp["created_at"] == db_resp["updated_at"]:
+                status_code = 201
+            else:
+                status_code = 200
+
+            body = db_resp["body"]
+            cur_para = body[len(body)-1]
+            cur_sent = cur_para[len(cur_para)-1]
+            response_dict = dict({
+                "id": db_resp["id"],
+                "title": db_resp["title"],
+                "current_sentence": cur_sent
             })
 
     return Response(
