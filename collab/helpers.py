@@ -55,8 +55,8 @@ def sane_query_args(query_dict):
     
     :param query_dict: query parameters
     :type query_dict: dict
-    :return: True if sanity check passes, False otherwise
-    :rtype: bool
+    :return: dictionary containing wrong parameters
+    :rtype: dict
     """
 
     error_params = dict()
@@ -87,9 +87,8 @@ def sane_query_args(query_dict):
     if query_dict["order"] not in ["asc", "desc"]:
         error_params.update({"order": query_dict["order"]})
 
-    if len(error_params.keys()) == 0:
-        return True
-    else:
+    if len(error_params.keys()) != 0:
         LOG.error("stories requested with invalid parameter values!")
         LOG.debug(str(error_params))
-        return False
+    
+    return error_params

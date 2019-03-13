@@ -8,6 +8,7 @@ import json
 from flask import Blueprint, request, Response
 
 from .helpers import sane_query_args
+from .exceptions import IDNotFound
 
 
 LOG = logging.getLogger(__name__)
@@ -50,9 +51,11 @@ def get_story_list():
         "order": request.args.get("order", "asc").lower()
     })
 
-    if not sane_query_args(query_dict):
+    # check for sanity of given input parameters
+    sanity_check_resp = sane_query_args(query_dict)
+    if len(sanity_check_resp.keys()) != 0:
         status_code = 400
-        response_dict = dict({"query": query_dict, "error": "invalid parameter values"})
+        response_dict = dict({"invalid parameters": sanity_check_resp, "error": "invalid parameter values"})
 
     else:
         # TODO: implement code for getting list of stories
@@ -112,8 +115,7 @@ def get_story(id):
                     ]
                 }
             )
-        # TODO: replace with IDNotFound error
-        except Exception as err:
+        except IDNotFound as err:
             LOG.error(err)
             raise ValueError("route parameter (id) is invalid (not found)")
 
