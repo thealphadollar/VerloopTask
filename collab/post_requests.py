@@ -23,20 +23,30 @@ def add_story():
     elif request.args.get("word", None):
         words = request.args.get("word")
     else:
-        return Response(
-            status=400,
-            response=json.dumps({"error": "no words detected"}),
-            mimetype="application/json"
-        )
+        words = None
+        status_code = 400
+        response_dict = dict({"error": "no words detected"})
 
-    if len(words) != 1:
-        if len(words) == 0:
-            resp = "no words sent"
+    if words is not None:
+        if len(words) != 1:
+            if len(words) == 0:
+                resp = "no words sent"
+            else:
+                resp = "multiple words sent"
+
+            status_code = 400
+            response_dict = dict({"error": resp})
         else:
-            resp = "multiple words sent"
+            # TODO: add new word to the dictionary, and return response code
+            # 201 if it was new, 200 if old and title and current_sentence.
+            status_code, response_dict = 200, dict({
+                "id": 1,
+                "title": "verloop task",
+                "current_sentence": "something"
+            })
 
-        return Response(
-            status=400,
-            response=json.dumps({"error": resp}),
-            mimetype="application/json"
-        )
+    return Response(
+        status = status_code,
+        response=json.dumps(response_dict),
+        mimetype="application/json"
+    )
