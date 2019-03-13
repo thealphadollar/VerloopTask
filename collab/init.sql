@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS stories;
-
-CREATE TABLE stories (
+CREATE TABLE IF NOT EXISTS stories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,  /* indexing based on id for easy retrieval */
     created_at TEXT NOT NULL,  /* stores time as string */
     updated_at TEXT,  /* stores time as string */, 
@@ -10,7 +8,7 @@ CREATE TABLE stories (
 )
 
 -- default last_modified to created_at
-CREATE TRIGGER created_to_updates
+CREATE TRIGGER IF NOT EXISTS created_to_updated
 AFTER INSERT ON stories
 FOR EACH ROW
 WHEN NEW.updated_at IS NULL
