@@ -10,6 +10,8 @@ from contextlib import contextmanager
 
 from flask import current_app, g
 
+from .exceptions import IDNotFound
+
 
 LOG = logging.getLogger(__name__)
 
@@ -78,8 +80,8 @@ class DBHandler:
                 cursor.execute("SELECT id, modifying, title, paragraphs FROM stories WHERE modifying != 'no';")
                 resp = [dict(row) for row in cursor.fetchall()]
         except sqlite3.Error as err:
-            LOG.error(err)
-            LOG.debug("unable to add word %s to database", word)
+            LOG.debug(err)
+            LOG.error("unable to add word %s to database", word)
             return dict()
 
         if len(resp) == 0:
@@ -149,8 +151,8 @@ class DBHandler:
                     resp = resp[0]
 
             except sqlite3.Error as err:
-                LOG.error(err)
-                LOG.debug("unable to retrieve (id=%s) from database", entry["id"])
+                LOG.debug(err)
+                LOG.error("unable to retrieve (id=%s) from database", entry["id"])
                 return dict()
 
         resp["paragraphs"] = json.loads(resp["paragraphs"])
@@ -188,11 +190,104 @@ class DBHandler:
                 resp = [dict(row) for row in cursor.fetchall()]
                 resp = resp[0]
         except sqlite3.Error as err:
-            LOG.error(err)
-            LOG.debug("failed to add data")
+            LOG.debug(err)
+            LOG.error("failed to add data")
             resp = dict()
 
         return resp
 
     @staticmethod
-    def get_stories
+    def get_stories(limit, offset, sort, order):
+        """
+        fetch list of stories from the database and return
+        
+        :param limit: number of stories
+        :type limit: int
+        :param offset: number of top results to be skipped
+        :type offset: int
+        :param sort: column in ["created_at", "updated_at", "title"]
+        :type sort: str 
+        :param order: order for sort from ["asc", "desc"]
+        :type order: str
+        :return: stories in a list as following format
+                [
+                    {
+                        "id": 1,
+                        "title": "verloop hiring",
+                        "created_at": "2018-12-01T00:00:00Z",
+                        "updated_at": "2018-12-01T00:01:00Z",
+                    }
+                ]
+        :rtype: list
+        """
+
+        sql_cmd = '''
+        SELECT id, title, created_at, updated_at
+        FROM stories
+        ORDER BY {sort_by} {order}
+        LIMIT {limit} OFFSET {offset}
+        '''.format(
+            sort_by = sort.lower(),
+            order = order.upper(),
+            limit = int(limit),
+            offset = int(offset)
+        )
+
+        try:
+            with DBHandler.connect() as conn:
+                cursor = conn.cursor()
+                cursor.execute(sql_cmd)
+                results = [dict(row) for row in cursor.fetchall()]
+        except sqlite3.Error as err:
+            LOG.debug(err)
+            LOG.error("failed to load stories from database")
+            results = dict({})
+        return results
+    
+    @staticmethod
+    def get_story(id):
+        """
+        get story with the given id
+        
+        :param id: id of the story to fetch
+        :type id: int
+        :raises IDNotFound: id not present in the database
+        :return: story with the given id if it exists in the following format:
+                {
+                    "id": 1,
+                    "title": "verloop hiring",
+                    "created_at": "2018-12-01T00:00:00Z",
+                    "updated_at": "2018-12-01T00:01:00Z",
+                    "paragraphs":[
+                        {
+                            "sentences":[
+                                "hi!"
+                            ]
+                        }
+                    ]
+                }
+        :rtype: dict
+        """
+
+        sql_cmd = '''
+        SELECT id, title, created_at, updated_at, paragraphs
+        FROM stories
+        WHERE id = ?
+        '''
+        try:
+            with DBHandler.connect() as conn:
+                cursor = conn.cursor()
+                cursor.execute(sql_cmd, id)
+                results = [dict(row) for row in cursor.fetcall()]
+                results = results[0]
+                results["paragraphs"] = json.loads(results["paragraphs"])
+        except sqlite3.Error as err:
+            LOG.debug(err)
+            LOG.error("failed to fetch story (id=%s) from database", id)
+            results = dict({})
+        
+        if len(results) == 0:
+            raise IDNotFound(id)
+               
+        return results
+            
