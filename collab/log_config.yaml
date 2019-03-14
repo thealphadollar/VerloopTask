@@ -5,11 +5,11 @@ version: 1
 disable_existing_loggers: True
 formatters:
   simple:
-    format: "%(asctime)s [%(name)s] [%(levelname)-8s] %(message)s"
+    format: "%(asctime)s [%(name)s] [%(lineno)s] [%(levelname)-8s] %(message)s"
     datefmt: '%m/%d/%Y %I:%M:%S %p'
   colored:
     "()": coloredlogs.ColoredFormatter
-    format: "%(asctime)s [%(name)s] [%(levelname)-8s] %(message)s"
+    format: "%(asctime)s [%(name)s] [%(lineno)s] [%(levelname)-8s] %(message)s"
     datefmt: '%m/%d/%Y %H:%M:%S'
 handlers:
   console:

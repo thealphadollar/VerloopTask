@@ -29,10 +29,16 @@ class DBHandler:
         """
         initialises database with instructions in init.sql        
         """
-
-        with self.connect() as conn:
-            with current_app.open_resource('init.sql') as f:
-                conn.executescript(f.read().decode('utf-8'))
+        LOG.info("initializing database...")
+        try:
+            with self.connect() as conn:
+                with current_app.open_resource('init.sql') as f:
+                    conn.executescript(f.read().decode('utf-8'))
+            LOG.info("SUCCESS: database initialized!")
+        except sqlite3.Error as err:
+            LOG.debug(err)
+            LOG.fatal("FAILED TO INITIALIZE DATABASE AT %s", current_app.config['DATABASE'])
+            exit(1)
 
     @staticmethod
     @contextmanager
@@ -43,18 +49,21 @@ class DBHandler:
         """
 
         if 'db' not in g:
+            LOG.debug("initializing DB connection...")
             g.db = sqlite3.connect(
                 current_app.config['DATABASE'],
                 detect_types=sqlite3.PARSE_DECLTYPES
             )
             g.db.row_factory = sqlite3.Row
         
+        LOG.debug("SUCCESS: DB connection established!")
         yield g.db
         
         db = g.pop('db', None)
 
         if db is not None:
             db.close()
+            LOG.debug("SUCCESS: DB connection closed!")
 
     @staticmethod
     def add_word(word):
@@ -79,6 +88,7 @@ class DBHandler:
                 cursor = conn.cursor()
                 cursor.execute("SELECT id, modifying, title, paragraphs FROM stories WHERE modifying != 'no';")
                 resp = [dict(row) for row in cursor.fetchall()]
+                print(resp)
         except sqlite3.Error as err:
             LOG.debug(err)
             LOG.error("unable to add word %s to database", word)
@@ -90,7 +100,7 @@ class DBHandler:
             # gives only the story on which editing is allowed
             sql_cmd = '''
             UPDATE stories
-            SET updated_at = datetime('now')
+            SET updated_at = (datetime('now')),
                 modifying = ?,
                 title = ?,
                 paragraphs = ?
@@ -99,10 +109,10 @@ class DBHandler:
 
             entry = resp[0]
             paragraphs = json.loads(entry["paragraphs"])
-            modifying = [map(int, entry["modifying"].split('|'))]
-
-            if modifying[MOD_TITLE]:
-                entry["title"] = resp["title"] + " " + word
+            modifying = [int(x) for x in entry["modifying"].split('|')]
+            print(modifying)
+            if int(modifying[MOD_TITLE]):
+                entry["title"] = entry["title"] + " " + word
                 modifying[MOD_TITLE] = 0
             else:
                 cur_para_index = modifying[MOD_PARA]
@@ -117,7 +127,7 @@ class DBHandler:
                         cur_sent = paragraphs[cur_para_index]["sentences"][cur_sent_index]
 
                     if len(cur_sent.split()) < 15:
-                        paragraphs[cur_para_index]["sentences"][cur_sent_index] = cur_sent + " " + word
+                        paragraphs[cur_para_index]["sentences"][cur_sent_index] = cur_sent + (" " if cur_sent!="" else "") + word
                         added = True
                     else:
                         if cur_sent_index < 9:
@@ -140,7 +150,7 @@ class DBHandler:
                 with DBHandler.connect() as conn:
                     cursor = conn.cursor()
                     cursor.execute(sql_cmd, (
-                        "|".join(map(str, modifying)),
+                        str("|".join(map(str, modifying))),
                         entry["title"],
                         json.dumps(paragraphs),
                         entry["id"]
@@ -155,7 +165,8 @@ class DBHandler:
                 LOG.error("unable to retrieve (id=%s) from database", entry["id"])
                 return dict()
 
-        resp["paragraphs"] = json.loads(resp["paragraphs"])
+        if len(resp.keys()):
+            resp["paragraphs"] = json.loads(resp["paragraphs"])
         return resp
             
     @staticmethod
@@ -177,13 +188,13 @@ class DBHandler:
         """
 
         sql_cmd = '''
-        INSERT INTO stories title
-        VALUES ?
+        INSERT INTO stories (title)
+        VALUES (?)
         '''
         try:
             with DBHandler.connect()  as conn:
                 cursor = conn.cursor()
-                cursor.execute(sql_cmd, word)
+                cursor.execute(sql_cmd, (word,))
                 conn.commit()
 
                 cursor.execute("SELECT id, title, created_at, updated_at, paragraphs FROM stories WHERE modifying!='no';")
@@ -277,8 +288,8 @@ class DBHandler:
         try:
             with DBHandler.connect() as conn:
                 cursor = conn.cursor()
-                cursor.execute(sql_cmd, id)
-                results = [dict(row) for row in cursor.fetcall()]
+                cursor.execute(sql_cmd, (id,))
+                results = [dict(row) for row in cursor.fetchall()]
                 results = results[0]
                 results["paragraphs"] = json.loads(results["paragraphs"])
         except sqlite3.Error as err:

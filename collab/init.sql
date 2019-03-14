@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS stories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,  /* indexing based on id for easy retrieval */
-    created_at TEXT DEFAULT datetime('now'),  /* stores time as string */
-    updated_at TEXT,  /* stores time as string */, 
+    created_at TEXT DEFAULT (datetime('now')),  /* stores time as string */
+    updated_at TEXT,  /* stores time as string */
     modifying TEXT DEFAULT "1|0|0",  /* stores "no", "title", "paragraphs" */
     title TEXT NOT NULL,
-    paragraphs TEXT DEFAULT "[{'sentences':[""]}]" /* will store stringified JSON */
-)
+    paragraphs TEXT DEFAULT '[{"sentences":[""]}]' /* will store stringified JSON */
+);
 
 -- default updated_at to created_at
 CREATE TRIGGER IF NOT EXISTS created_to_updated

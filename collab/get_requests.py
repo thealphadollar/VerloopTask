@@ -9,6 +9,7 @@ from flask import Blueprint, request, Response
 
 from .helpers import sane_query_args
 from .exceptions import IDNotFound
+from .db_hanlder import DBHandler
 
 
 LOG = logging.getLogger(__name__)
@@ -58,15 +59,7 @@ def get_story_list():
         response_dict = dict({"invalid parameters": sanity_check_resp, "error": "invalid parameter values"})
 
     else:
-        # TODO: implement code for getting list of stories
-        results = [
-                    {
-                        "id": 1,
-                        "title": "verloop hiring",
-                        "created_at": "2018-12-01T00:00:00Z",
-                        "updated_at": "2018-12-01T00:01:00Z",
-                    }
-                ]
+        results = DBHandler.get_stories(query_dict["limit"], query_dict["offset"], query_dict["sort"], query_dict["order"])
         status_code = 200
         response_dict = dict({
             "limit": query_dict["limit"],
@@ -94,27 +87,12 @@ def get_story(id):
     try:
         # raises ValueError if id is non-integer
         id = int(id)
-        # TODO: check if 0 is acceptable
-        if id < 0:
+        if id <= 0:
             raise ValueError("route parameter (id) is invalid (negative)")
         
         # TODO: query database for the particular story, raise idNotFound Error
         try:
-            db_resp = dict(
-                {
-                    "id": 1,
-                    "title": "verloop hiring",
-                    "created_at": "2018-12-01T00:00:00Z",
-                    "updated_at": "2018-12-01T00:01:00Z",
-                    "paragraphs":[
-                        {
-                            "sentences":[
-                                "hi!"
-                            ]
-                        }
-                    ]
-                }
-            )
+            db_resp = DBHandler.get_story(id)
         except IDNotFound as err:
             LOG.error(err)
             raise ValueError("route parameter (id) is invalid (not found)")
@@ -123,8 +101,9 @@ def get_story(id):
         response_dict = db_resp
 
     except ValueError as err:
-        LOG.error(err)
-        LOG.debug(str({"id": id}))
+        LOG.debug(err)
+        LOG.error("unsupported or invalid story id provided")
+        LOG.error(str({"id": id}))
         status_code = 400
         response_dict = dict({"id": id, "error": "invalid id"})
 
