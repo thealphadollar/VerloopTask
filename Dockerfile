@@ -16,6 +16,8 @@ RUN pip install pipenv
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 RUN pipenv install --dev --system
+# install ruamel-yaml via pip since it has issues with pipenv
+RUN pip install ruamel-yaml
 
 EXPOSE 8000
 ENTRYPOINT [ "gunicorn" ]

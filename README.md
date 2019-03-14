@@ -22,7 +22,6 @@ Following environment variables can be used to control the application:
 ```bash
 VERLOOP_DEBUG=TRUE  # truthy value outputs debug logs
 FLASK_ENV='development'  # environment for flask app
-FLASK_APP='collab'  # to set the path of the flask app
 ```
 
 ## Running
@@ -40,10 +39,26 @@ pip install pipenv
 pipenv shell --three
 pipenv install --dev
 export FLASK_APP='collab'
-flask run
+gunicorn collab.wsgi:app
 ```
 
+## Endpoints
+
+The following endpoints have been implemented which can accessed at http://127.0.0.1:8000 if run locally irrespective of method of launch.
+
+```bash
+/add # add one word to the current story
+/stories # fetch list of all stories
+/stories/<id> # fetch story with id
+```
+
+NOTE: The format of responses has been followed as instructed in the problem statement. A few more responses has been created to handle wrong input parameters.
+
 ## Other Details
+
+### Documentation
+
+The project is well documented with docstrings and that is the pythonic method. An HTML documentation website can be created using [sphinx](http://www.sphinx-doc.org/en/master/) based on the docstrings.
 
 ### Schema
 
