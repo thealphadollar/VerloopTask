@@ -7,6 +7,7 @@ import json
 
 from flask import Blueprint, request, Response
 
+from .db_hanlder import DBHandler
 
 LOG = logging.getLogger(__name__)
 
@@ -41,23 +42,19 @@ def add_story():
             status_code = 400
             response_dict = dict({"error": resp})
         else:
-            # TODO: add new word to the dictionary, and return response code
-            # 201 if it was new, 200 if old and title and current_sentence.
-            db_resp = dict({
-                "id": 1,
-                "title": "something",
-                "created_at": "timestamp",
-                "updated_at": "timestamp",
-                "body": "something somemore something"
-            })
+            db_resp = DBHandler.add_word(words)
+
+            # return internal server error in case of Database Error
+            if len(db_resp.keys()) == 0:
+                return Response(status=500)
 
             if db_resp["created_at"] == db_resp["updated_at"]:
                 status_code = 201
             else:
                 status_code = 200
 
-            body = db_resp["body"]
-            cur_para = body[len(body)-1]
+            paragraphs = db_resp["paragraphs"]
+            cur_para = paragraphs[len(paragraphs)-1]["sentences"]
             cur_sent = cur_para[len(cur_para)-1]
             response_dict = dict({
                 "id": db_resp["id"],

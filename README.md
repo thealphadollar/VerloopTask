@@ -25,9 +25,9 @@ The database has a single table based on the following schema:
 id INTEGER PRIMARY KEY AUTOINCREMENT  /* indexing based on id for easy retrieval */
 created_at TEXT NOT NULL  /* stores time as string */
 last_modified TEXT  /* stores time as string */, 
-modifying TEXT NOT NULL  /* stores "no", "title", "body" */
+modifying TEXT NOT NULL  /* stores "no", "title", "paragraphs" */
 title TEXT NOT NULL
-body TEXT  /* will store stringified JSON */
+paragraphs TEXT  /* will store stringified JSON */
 ```
 
 ## Logging
