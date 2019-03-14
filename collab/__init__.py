@@ -11,6 +11,7 @@ from .config import BasicConfig, ProdConfig
 from .helpers import config_logging
 from .post_requests import add
 from .get_requests import stories
+from .db_hanlder import DBHandler
 
 
 LOG = logging.getLogger("collab")
@@ -41,6 +42,9 @@ def create_app():
 
     LOG.debug("Initialising logging module...")
     config_logging()
+
+    # initialisating database
+    DBHandler()
 
     # adding blueprints
     app.register_blueprint(add)

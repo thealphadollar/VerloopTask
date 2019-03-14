@@ -31,26 +31,35 @@ def add_story():
         words = None
         status_code = 400
         response_dict = dict({"error": "no words detected"})
+        LOG.warning("No data added: no 'word' data received in the request")
 
     if words is not None:
-        if len(words) != 1:
+        if len(words.split()) != 1:
             if len(words) == 0:
                 resp = "no words sent"
+                LOG.warning("No data added: no words detected in request!")
             else:
                 resp = "multiple words sent"
+                LOG.warning("No data added: multiple words (%s) detected in request!", words)
 
             status_code = 400
             response_dict = dict({"error": resp})
         else:
+
+            LOG.info("Adding word (%s) to the stories table", words)
+
             db_resp = DBHandler.add_word(words)
 
             # return internal server error in case of Database Error
             if len(db_resp.keys()) == 0:
+                LOG.error("FAILED: adding word (%s) to the stories table", words)
                 return Response(status=500)
 
             if db_resp["created_at"] == db_resp["updated_at"]:
+                LOG.info("SUCCESS: new story start with word (%s)", words)
                 status_code = 201
             else:
+                LOG.info("SUCCESS: story updated with word (%s)", words)
                 status_code = 200
 
             paragraphs = db_resp["paragraphs"]
